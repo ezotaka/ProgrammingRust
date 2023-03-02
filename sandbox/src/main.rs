@@ -1,40 +1,19 @@
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
+use thiserror::Error;
 
-fn main() {
-    let (tx, rx) = mpsc::channel();
+fn main() -> Result<(), TideError> {
+    let tides = calculate_tides()?;
+    println!("{:?}", tides);
+    Ok(())
+}
 
-    let tx1 = tx.clone();
-    thread::spawn(move || {
-        let vals = vec![
-            String::from("hi"),
-            String::from("from"),
-            String::from("the"),
-            String::from("thread"),
-        ];
+#[derive(Debug, Error)]
+#[error("{message:}")]
+pub struct TideError {
+    message: String,
+}
 
-        for val in vals {
-            tx1.send(val).unwrap();
-            thread::sleep(Duration::from_secs(1));
-        }
-    });
-
-    thread::spawn(move || {
-        let vals = vec![
-            String::from("more"),
-            String::from("messages"),
-            String::from("for"),
-            String::from("you"),
-        ];
-
-        for val in vals {
-            tx.send(val).unwrap();
-            thread::sleep(Duration::from_secs(1));
-        }
-    });
-
-    for received in rx {
-        println!("Got: {}", received);
-    }
+fn calculate_tides() -> Result<(), TideError> {
+    Err(TideError {
+        message: "moon not found".to_string(),
+    })
 }
