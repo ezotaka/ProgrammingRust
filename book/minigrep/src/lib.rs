@@ -7,11 +7,22 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut contents = String::new();
     f.read_to_string(&mut contents)?;
 
-    println!("contents:{}", contents);
+    for line in search(&config.query, &contents) {
+        println!("{}", line);
+    }
 
     Ok(())
 }
 
+fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut lines = Vec::new();
+    for line in contents.lines() {
+        if line.contains(query) {
+            lines.push(line);
+        }
+    }
+    lines
+}
 #[allow(dead_code)]
 pub struct Config {
     query: String,
@@ -25,5 +36,21 @@ impl Config {
         }
         let (query, filename) = (args[1].clone(), args[2].clone());
         Ok(Config { query, filename })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
 }
