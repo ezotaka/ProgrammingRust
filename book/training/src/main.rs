@@ -43,31 +43,33 @@ fn main() {
     generate_workout(simulated_user_specified_value, simulated_random_number);
 }
 
-struct Cacher<T>
+struct Cacher<F, K, V>
 where
-    T: Fn(u32) -> u32,
+    F: Fn(K) -> V,
 {
-    calculation: T,
-    values: HashMap<u32, u32>,
+    calculation: F,
+    values: HashMap<K, V>,
 }
 
-impl<T> Cacher<T>
+impl<F, K, V> Cacher<F, K, V>
 where
-    T: Fn(u32) -> u32,
+    F: Fn(K) -> V,
+    K: Hash + Eq + Clone,
+    V: Clone,
 {
-    fn new(calculation: T) -> Self {
+    fn new(calculation: F) -> Self {
         Cacher {
             calculation,
             values: HashMap::new(),
         }
     }
 
-    fn value(&mut self, arg: u32) -> u32 {
+    fn value(&mut self, arg: K) -> V {
         match self.values.get(&arg) {
-            Some(&v) => v,
+            Some(v) => v.clone(),
             None => {
-                let v = (self.calculation)(arg);
-                self.values.insert(arg, v);
+                let v = (self.calculation)(arg.clone());
+                self.values.insert(arg, v.clone());
                 v
             }
         }
