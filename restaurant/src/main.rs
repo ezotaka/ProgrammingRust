@@ -2,7 +2,7 @@ use restaurant::back_of_house::Breakfast;
 use restaurant::{eat_at_restaurant, front_of_house::hosting};
 fn main() {
     eat_at_restaurant();
-    let b = Breakfast {
+    let _b = Breakfast {
         toast: String::from("Wheat"),
         seasonal_fruit: String::from("Blueberries"),
     };
