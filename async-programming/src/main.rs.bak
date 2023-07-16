@@ -1,0 +1,54 @@
+use async_std::io::{self, prelude::*};
+use async_std::{net, task};
+use std::error::Error;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+
+fn main() {
+    call();
+}
+
+fn call() {
+    //if let Ok(res) = task::block_on(fetch_string(r#"https://www.google.com"#)) {
+    //    println!("{}", res);
+    //}
+    let response = fetch_string("http://www.google.com");
+    task::block_on(async {
+        if let Ok(res) = response.await {
+            println!("{:?}", res);
+        };
+    });
+}
+
+async fn fetch_string(address: &str) -> io::Result<String> {
+    let mut socket = net::TcpStream::connect(address).await?;
+    let mut buf = String::new();
+    socket.read_to_string(&mut buf).await?;
+    Ok(buf)
+}
+
+async fn server() -> Result<(), Box<dyn Error>> {
+    // サーバーの実装（先程のサーバープログラムを移植する）
+
+    let listener = TcpListener::bind("0.0.0.0:8080").await?;
+    println!("Listening on port 8080...");
+
+    loop {
+        let (mut socket, _) = listener.accept().await?;
+        tokio::spawn(async move {
+            let mut buffer = [0; 1024];
+
+            let bytes_read = socket.read(&mut buffer).await?;
+            println!(
+                "Received: {}",
+                String::from_utf8_lossy(&buffer[..bytes_read])
+            );
+
+            let response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+            socket.write_all(response.as_bytes()).await?;
+
+            drop(socket);
+            Ok::<(), Box<dyn Error>>(())
+        });
+    }
+}
